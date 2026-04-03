@@ -1,0 +1,10 @@
+{
+  "name": "The Hancock Family Garden",
+  "short_name": "HCG",
+  "description": "A couples budget tracking app with a garden theme",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#F5EDD6",
+  "theme_color": "#5A7A3A",
+  "orientation": "portrait"
+}
