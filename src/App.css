@@ -1,0 +1,5 @@
+/* App-level styles — most styling is inline in components */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
