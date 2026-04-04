@@ -1,4 +1,6 @@
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useReducer, useEffect, useRef, useState } from 'react';
+import { doc, setDoc, onSnapshot, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 export const CROPS_PER_PLOT = 10;
 
@@ -39,6 +41,21 @@ const INITIAL_STATE = {
   weeklyStats: {},
 };
 
+// Stable device ID — persists in localStorage so this device is always recognized
+const DEVICE_ID = (() => {
+  let id = localStorage.getItem('hcg-device-id');
+  if (!id) {
+    id = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+    localStorage.setItem('hcg-device-id', id);
+  }
+  return id;
+})();
+
+function generateGardenCode() {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
 function getWeekKey(date = new Date()) {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
@@ -51,13 +68,10 @@ function getWeekKey(date = new Date()) {
 function reducer(state, action) {
   switch (action.type) {
     case 'HYDRATE': {
-      const loaded = action.payload;
-      // Migrate from v1/v2 to v3 (new crop types: cabbages, watermelon, carrots)
+      // Strip internal Firestore fields before storing in state
+      const { _device, ...loaded } = action.payload;
       if (!loaded.version || loaded.version < 3) {
-        return {
-          ...INITIAL_STATE,
-          settings: { ...INITIAL_STATE.settings, ...(loaded.settings || {}) },
-        };
+        return { ...INITIAL_STATE, settings: { ...INITIAL_STATE.settings, ...(loaded.settings || {}) } };
       }
       return { ...INITIAL_STATE, ...loaded };
     }
@@ -99,16 +113,10 @@ function reducer(state, action) {
     }
 
     case 'DELETE_TRANSACTION':
-      return {
-        ...state,
-        transactions: state.transactions.filter(t => t.id !== action.id),
-      };
+      return { ...state, transactions: state.transactions.filter(t => t.id !== action.id) };
 
     case 'CLEAR_MONTH':
-      return {
-        ...state,
-        transactions: state.transactions.filter(t => !t.date.startsWith(action.month)),
-      };
+      return { ...state, transactions: state.transactions.filter(t => !t.date.startsWith(action.month)) };
 
     default:
       return state;
@@ -119,28 +127,71 @@ const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
+  const [gardenCode, setGardenCodeState] = useState(
+    () => localStorage.getItem('hcg-garden-code')
+  );
+  // Prevents writing back to Firestore when the state change came FROM Firestore
+  const fromFirestore = useRef(false);
 
+  // ── Subscribe to real-time Firestore updates ──
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('hcg-data');
-      if (saved) {
-        dispatch({ type: 'HYDRATE', payload: JSON.parse(saved) });
-      }
-    } catch (_) {}
-  }, []);
+    if (!gardenCode) return;
+    const docRef = doc(db, 'gardens', gardenCode);
+    const unsub = onSnapshot(docRef, (snap) => {
+      if (!snap.exists()) return;
+      const data = snap.data();
+      // Ignore updates that originated from this device (we already have them)
+      if (data._device === DEVICE_ID) return;
+      fromFirestore.current = true;
+      dispatch({ type: 'HYDRATE', payload: data });
+    });
+    return unsub;
+  }, [gardenCode]);
 
+  // ── Write state to Firestore whenever it changes ──
   useEffect(() => {
-    try {
-      localStorage.setItem('hcg-data', JSON.stringify(state));
-    } catch (_) {}
-  }, [state]);
+    if (fromFirestore.current) {
+      fromFirestore.current = false;
+      return; // this change came from Firestore — don't echo it back
+    }
+    if (!gardenCode || !state.settings.onboarded) return;
+    setDoc(doc(db, 'gardens', gardenCode), { ...state, _device: DEVICE_ID })
+      .catch(() => {}); // silently ignore offline errors
+  }, [state, gardenCode]);
 
-  return <AppContext.Provider value={{ state, dispatch, CROPS }}>{children}</AppContext.Provider>;
+  // ── Create a brand-new shared garden ──
+  async function createGarden(person1, person2) {
+    const code = generateGardenCode();
+    const initialData = {
+      ...INITIAL_STATE,
+      settings: { ...INITIAL_STATE.settings, person1, person2, onboarded: true },
+    };
+    await setDoc(doc(db, 'gardens', code), { ...initialData, _device: DEVICE_ID });
+    localStorage.setItem('hcg-garden-code', code);
+    setGardenCodeState(code);
+    dispatch({ type: 'HYDRATE', payload: initialData });
+    return code;
+  }
+
+  // ── Join an existing garden by code ──
+  async function joinGarden(code) {
+    const upper = code.toUpperCase().trim();
+    const snap = await getDoc(doc(db, 'gardens', upper));
+    if (!snap.exists()) throw new Error('Garden not found. Check the code and try again.');
+    localStorage.setItem('hcg-garden-code', upper);
+    setGardenCodeState(upper);
+    fromFirestore.current = true; // the HYDRATE below came "from Firestore", don't write back
+    dispatch({ type: 'HYDRATE', payload: snap.data() });
+  }
+
+  return (
+    <AppContext.Provider value={{ state, dispatch, CROPS, gardenCode, createGarden, joinGarden }}>
+      {children}
+    </AppContext.Provider>
+  );
 }
 
-export function useApp() {
-  return useContext(AppContext);
-}
+export function useApp() { return useContext(AppContext); }
 
 export function useCategory(id) {
   const { state } = useApp();
@@ -166,7 +217,7 @@ export function useCategoryTransactions(id) {
 export function getPlotState(spent, budget) {
   if (budget <= 0) return 'flourishing';
   const pct = spent / budget;
-  if (pct >= 1.0)  return 'dead';
+  if (pct >= 1.0) return 'dead';
   if (pct >= 0.75) return 'wilting';
   return 'flourishing';
 }
