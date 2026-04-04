@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useApp, useCategory, useCategorySpend, useCategoryTransactions, getPlotState, CROPS } from '../context/AppContext';
-import CropIllustration from '../components/CropIllustration';
+import { useApp, useCategory, useCategorySpend, useCategoryTransactions, getPlotState } from '../context/AppContext';
+import PlotSoilScene from '../components/CropIllustration';
 
 export default function PlotDetailScreen({ categoryId, onBack }) {
   const { state, dispatch } = useApp();
@@ -59,8 +59,16 @@ export default function PlotDetailScreen({ categoryId, onBack }) {
           </h2>
           <PlotStateBadge state={plotState} />
         </div>
-        <div style={{ marginLeft: 'auto' }}>
-          <CropIllustration crop={category.crop} state={plotState} size={64} />
+        <div style={{
+          marginLeft: 'auto',
+          width: 72,
+          height: 64,
+          background: '#4A2810',
+          border: '3px solid #3A2008',
+          flexShrink: 0,
+          overflow: 'hidden',
+        }}>
+          <PlotSoilScene crop={category.crop} spent={spent} budget={category.budget} />
         </div>
       </div>
 

@@ -1,293 +1,403 @@
+import { CROPS_PER_PLOT } from '../context/AppContext';
+
 /**
- * CropPlotScene — renders crops as dense illustrated rows inside a soil bed.
- * Three visual states: flourishing | wilting | dead
+ * PlotSoilScene — pixel art SVG showing 10 crops in a 5×2 grid.
+ * Each crop can be: standing (animated), plucking (tilting), plucked (stub), or dead (cracked soil).
  */
-export default function CropPlotScene({ crop, state }) {
-  const Fn = PLOT_FNS[crop] || PLOT_FNS.tomatoes;
+export default function PlotSoilScene({ crop, spent = 0, budget = 100 }) {
+  const cropValue  = budget > 0 ? budget / CROPS_PER_PLOT : 1;
+  const rawPlucked = budget > 0 ? spent / cropValue : 0;
+  const fullyPlucked = Math.min(Math.floor(rawPlucked), CROPS_PER_PLOT);
+  const partialPct   = rawPlucked - Math.floor(rawPlucked);
+  const overBudget   = spent > budget;
+
+  // Grid: 5 cols × 2 rows = 10 items
+  const cols = [10, 29, 48, 67, 86];
+  const rows = [38, 70];
+  const items = [];
+  for (let r = 0; r < 2; r++) {
+    for (let c = 0; c < 5; c++) {
+      items.push({ idx: r * 5 + c, x: cols[c], y: rows[r] });
+    }
+  }
+
+  const CropFn = CROP_FNS[crop] || CROP_FNS.tomatoes;
+
   return (
     <svg
-      viewBox="0 0 160 110"
-      style={{ width: '100%', height: '100%', display: 'block' }}
-      preserveAspectRatio="xMidYMid slice"
+      viewBox="0 0 96 80"
+      style={{ width: '100%', height: '100%', display: 'block', imageRendering: 'pixelated' }}
+      shapeRendering="crispEdges"
     >
-      <Fn state={state} />
+      {/* Soil background */}
+      <rect x="0" y="0" width="96" height="80" fill="#3A1F08" />
+      <rect x="0" y="0" width="96" height="80" fill="#4A2810" />
+      {/* Soil rows */}
+      <rect x="2" y="48" width="92" height="2" fill="#3A1F08" />
+      <rect x="2" y="16" width="92" height="1" fill="#5A3418" opacity="0.5" />
+      <rect x="2" y="58" width="92" height="1" fill="#5A3418" opacity="0.5" />
+
+      {overBudget ? (
+        <CrackedSoil />
+      ) : (
+        items.map(({ idx, x, y }) => {
+          let itemState;
+          if (idx < fullyPlucked) itemState = 'plucked';
+          else if (idx === fullyPlucked && partialPct > 0.05) itemState = 'plucking';
+          else itemState = 'standing';
+
+          return (
+            <CropItem
+              key={idx}
+              x={x} y={y} idx={idx}
+              state={itemState}
+              partialPct={partialPct}
+              CropFn={CropFn}
+              crop={crop}
+            />
+          );
+        })
+      )}
     </svg>
   );
 }
 
-/* ─────────────── Soil row lines (texture) ─────────────── */
-function SoilRows() {
-  return [18, 38, 58, 78, 98].map(y => (
-    <line key={y} x1="4" y1={y} x2="156" y2={y}
-      stroke="rgba(0,0,0,0.12)" strokeWidth="1.5" strokeDasharray="5,7" />
-  ));
+function CropItem({ x, y, idx, state, partialPct, CropFn, crop }) {
+  const animClass = ANIM_CLASS[crop] || 'pixelBob';
+  const delay = `${(idx * 0.18).toFixed(2)}s`;
+
+  if (state === 'plucked') {
+    // bare brown stub
+    return <rect x={x - 1} y={y - 5} width={3} height={5} fill="#5C3A18" />;
+  }
+
+  if (state === 'plucking') {
+    const tiltAngle = partialPct * 65;
+    const opacity   = 1 - partialPct * 0.4;
+    return (
+      <g
+        transform={`rotate(${tiltAngle}, ${x}, ${y})`}
+        opacity={opacity}
+      >
+        <CropFn x={x} y={y} />
+      </g>
+    );
+  }
+
+  // standing — animated
+  return (
+    <g
+      className={animClass}
+      style={{ '--delay': delay }}
+    >
+      <CropFn x={x} y={y} />
+    </g>
+  );
 }
 
-/* ─────────────── TOMATOES ─────────────── */
-function TomatoPlot({ state }) {
-  if (state === 'dead') return <DeadPlot />;
+/* ── Animation class assignments ── */
+const ANIM_CLASS = {
+  sunflowers:  'pixelBob',
+  tomatoes:    'pixelBob',
+  daisies:     'pixelBob',
+  roses:       'pixelBob',
+  lavender:    'pixelSway',
+  wheat:       'pixelSway',
+  chamomile:   'pixelSway',
+  grapevines:  'pixelRustle',
+  wildflowers: 'pixelRustle',
+};
 
-  const rows    = state === 'flourishing' ? [32, 68, 102] : [45, 88];
-  const cols    = state === 'flourishing' ? [18, 50, 82, 114, 146] : [28, 72, 118];
-  const stemH   = state === 'flourishing' ? 28 : 18;
-  const stemClr = state === 'flourishing' ? '#4A7A28' : '#8A9A50';
-  const leafClr = state === 'flourishing' ? '#5FA030' : '#9AAA60';
-  const fruitClr = state === 'flourishing' ? '#D84030' : '#C07840';
-  const fr = state === 'flourishing' ? 7.5 : 5.5;
-
+/* ── Cracked soil for over-budget ── */
+function CrackedSoil() {
   return (
     <>
-      <SoilRows />
-      {rows.flatMap((y, ri) =>
-        cols.map((x, ci) => (
-          <g key={`${ri}-${ci}`}>
-            {/* stem */}
-            <line x1={x} y1={y} x2={x} y2={y - stemH} stroke={stemClr} strokeWidth="2" strokeLinecap="round" />
-            {/* leaves */}
-            <ellipse cx={x - 8} cy={y - stemH * 0.45} rx="8" ry="3.5" fill={leafClr} transform={`rotate(-35 ${x - 8} ${y - stemH * 0.45})`} />
-            <ellipse cx={x + 8} cy={y - stemH * 0.6} rx="7" ry="3.5" fill={leafClr} transform={`rotate(30 ${x + 8} ${y - stemH * 0.6})`} />
-            {/* calyx */}
-            <path d={`M${x - 4},${y - stemH + 2} Q${x},${y - stemH - 3} ${x + 4},${y - stemH + 2}`}
-              fill={leafClr} opacity="0.8" />
-            {/* main fruit */}
-            <circle cx={x} cy={y - stemH} r={fr} fill={fruitClr} />
-            <circle cx={x - fr * 0.3} cy={y - stemH - fr * 0.2} r={fr * 0.35} fill="rgba(255,255,255,0.2)" />
-            {/* side fruits */}
-            {state === 'flourishing' && <>
-              <circle cx={x - 11} cy={y - stemH * 0.75} r={5.5} fill={fruitClr} />
-              <circle cx={x + 11} cy={y - stemH * 0.68} r={5} fill={fruitClr} />
-            </>}
-          </g>
-        ))
-      )}
+      <rect x="0" y="0" width="96" height="80" fill="#2A1008" />
+      <rect x="0" y="0" width="96" height="80" fill="#3A1C08" />
+      {/* Crack lines */}
+      <rect x="10" y="12" width="18" height="2" fill="#1A0C04" />
+      <rect x="27" y="14" width="2"  height="10" fill="#1A0C04" />
+      <rect x="27" y="22" width="12" height="2"  fill="#1A0C04" />
+      <rect x="50" y="8"  width="2"  height="14" fill="#1A0C04" />
+      <rect x="52" y="8"  width="12" height="2"  fill="#1A0C04" />
+      <rect x="70" y="18" width="16" height="2"  fill="#1A0C04" />
+      <rect x="70" y="20" width="2"  height="8"  fill="#1A0C04" />
+      <rect x="16" y="44" width="20" height="2"  fill="#1A0C04" />
+      <rect x="36" y="44" width="2"  height="12" fill="#1A0C04" />
+      <rect x="55" y="38" width="2"  height="16" fill="#1A0C04" />
+      <rect x="55" y="52" width="14" height="2"  fill="#1A0C04" />
+      <rect x="74" y="48" width="14" height="2"  fill="#1A0C04" />
+      <rect x="74" y="50" width="2"  height="10" fill="#1A0C04" />
+      {/* Dry stubs */}
+      {[14, 34, 54, 74].map(x => (
+        <g key={x}>
+          <rect x={x}   y={66} width={2} height={8}  fill="#5C3A18" />
+          <rect x={x-2} y={68} width={4} height={2}  fill="#3A2010" />
+        </g>
+      ))}
     </>
   );
 }
 
-/* ─────────────── SUNFLOWERS ─────────────── */
-function SunflowerPlot({ state }) {
-  if (state === 'dead') return <DeadPlot />;
+/* ═══════════════════════════════════════════
+   PIXEL ART CROP SPRITES
+   Each sprite: (x, y) = base ground point
+   All shapes drawn relative to (x, y)
+   ═══════════════════════════════════════════ */
 
-  const rows  = state === 'flourishing' ? [38, 90] : [75];
-  const cols  = state === 'flourishing' ? [22, 62, 102, 142] : [35, 90];
-  const stemH = state === 'flourishing' ? 34 : 22;
-  const stemClr = state === 'flourishing' ? '#4A7A28' : '#8A9A50';
-  const petalClr = state === 'flourishing' ? '#F0C030' : '#C8A040';
-  const centerClr = state === 'flourishing' ? '#5C3A10' : '#7A5A28';
-  const pr = state === 'flourishing' ? 10 : 7;
-  const petals = state === 'flourishing' ? 10 : 7;
-
+/* ── SUNFLOWERS ── */
+function Sunflower({ x, y }) {
+  const stemColor  = '#4A7820';
+  const petalColor = '#D4A017';
+  const centerColor = '#3A1A06';
   return (
     <>
-      <SoilRows />
-      {rows.flatMap((y, ri) =>
-        cols.map((x, ci) => {
-          const headY = y - stemH;
-          return (
-            <g key={`${ri}-${ci}`}>
-              <line x1={x} y1={y} x2={x} y2={headY} stroke={stemClr} strokeWidth="2.5" strokeLinecap="round" />
-              {/* leaf */}
-              <ellipse cx={x - 9} cy={y - stemH * 0.5} rx="10" ry="4" fill={stemClr} transform={`rotate(-30 ${x - 9} ${y - stemH * 0.5})`} />
-              {/* petals */}
-              {Array.from({ length: petals }, (_, i) => {
-                const angle = (i / petals) * Math.PI * 2;
-                const px = x + Math.cos(angle) * (pr + 4);
-                const py = headY + Math.sin(angle) * (pr + 4);
-                return (
-                  <ellipse key={i}
-                    cx={px} cy={py}
-                    rx="5" ry="8"
-                    fill={petalClr}
-                    transform={`rotate(${angle * 180 / Math.PI + 90} ${px} ${py})`}
-                    opacity="0.95"
-                  />
-                );
-              })}
-              <circle cx={x} cy={headY} r={pr} fill={centerClr} />
-              <circle cx={x} cy={headY} r={pr * 0.6} fill={state === 'flourishing' ? '#3A2008' : '#5A3A18'} />
-            </g>
-          );
-        })
-      )}
+      {/* stem */}
+      <rect x={x-1} y={y-18} width={2} height={18} fill={stemColor} />
+      {/* leaves */}
+      <rect x={x-5} y={y-12} width={5} height={2} fill={stemColor} />
+      <rect x={x+1}  y={y-8}  width={4} height={2} fill={stemColor} />
+      {/* petals */}
+      <rect x={x-4} y={y-24} width={2} height={4} fill={petalColor} />
+      <rect x={x+2}  y={y-24} width={2} height={4} fill={petalColor} />
+      <rect x={x-6} y={y-20} width={4} height={2} fill={petalColor} />
+      <rect x={x+2}  y={y-20} width={4} height={2} fill={petalColor} />
+      <rect x={x-4} y={y-20} width={2} height={2} fill={petalColor} />
+      <rect x={x+2}  y={y-22} width={2} height={2} fill={petalColor} />
+      {/* center */}
+      <rect x={x-2} y={y-22} width={4} height={4} fill={centerColor} />
+      <rect x={x-1} y={y-23} width={2} height={6} fill={centerColor} />
     </>
   );
 }
 
-/* ─────────────── LAVENDER ─────────────── */
-function LavenderPlot({ state }) {
-  if (state === 'dead') return <DeadPlot />;
-
-  const rows  = state === 'flourishing' ? [35, 72, 108] : [55, 95];
-  const cols  = state === 'flourishing' ? [16, 48, 80, 112, 144] : [30, 80, 130];
-  const stemH = state === 'flourishing' ? 30 : 18;
-  const stemClr = state === 'flourishing' ? '#6A8A48' : '#9AAA68';
-  const budClr  = state === 'flourishing' ? '#9B6AC8' : '#B89AD8';
-  const buds = state === 'flourishing' ? 5 : 3;
-
+/* ── LAVENDER ── */
+function Lavender({ x, y }) {
+  const stemColor = '#607840';
+  const budColor  = '#9060C8';
+  const budLight  = '#B080E0';
   return (
     <>
-      <SoilRows />
-      {rows.flatMap((y, ri) =>
-        cols.map((x, ci) => (
-          <g key={`${ri}-${ci}`}>
-            <line x1={x} y1={y} x2={x} y2={y - stemH} stroke={stemClr} strokeWidth="1.8" strokeLinecap="round" />
-            {/* bud spike */}
-            {Array.from({ length: buds }, (_, i) => {
-              const by = y - stemH + (i * (stemH * 0.18));
-              return (
-                <g key={i}>
-                  <ellipse cx={x - 4} cy={by} rx="3.5" ry="2.2" fill={budClr} transform={`rotate(-20 ${x - 4} ${by})`} />
-                  <ellipse cx={x + 4} cy={by + 1} rx="3.5" ry="2.2" fill={budClr} opacity="0.85" transform={`rotate(20 ${x + 4} ${by + 1})`} />
-                </g>
-              );
-            })}
-            {/* side leaves */}
-            <ellipse cx={x - 8} cy={y - 8} rx="7" ry="3" fill={stemClr} transform={`rotate(-25 ${x - 8} ${y - 8})`} />
-            <ellipse cx={x + 8} cy={y - 6} rx="6" ry="3" fill={stemClr} transform={`rotate(20 ${x + 8} ${y - 6})`} />
-          </g>
-        ))
-      )}
+      {/* stem */}
+      <rect x={x-1} y={y-16} width={2} height={16} fill={stemColor} />
+      {/* side stems */}
+      <rect x={x-3} y={y-12} width={3} height={2} fill={stemColor} />
+      <rect x={x+1}  y={y-9}  width={3} height={2} fill={stemColor} />
+      {/* buds on main */}
+      {[0,2,4,6].map(i => (
+        <rect key={i} x={x + (i%2===0 ? -2 : 1)} y={y-16+i} width={2} height={2} fill={i<3 ? budColor : budLight} />
+      ))}
+      {/* left spike */}
+      <rect x={x-4} y={y-14} width={2} height={2} fill={budColor} />
+      <rect x={x-4} y={y-12} width={2} height={2} fill={budLight} />
+      {/* right spike */}
+      <rect x={x+2}  y={y-11} width={2} height={2} fill={budColor} />
+      <rect x={x+2}  y={y-9}  width={2} height={2} fill={budLight} />
     </>
   );
 }
 
-/* ─────────────── SUCCULENTS ─────────────── */
-function SucculentPlot({ state }) {
-  if (state === 'dead') return <DeadPlot />;
-
-  const rows  = state === 'flourishing' ? [28, 60, 93] : [45, 85];
-  const cols  = state === 'flourishing' ? [24, 60, 96, 132] : [40, 110];
-  const gr    = state === 'flourishing' ? 14 : 10;
-  const outerClr = state === 'flourishing' ? '#5A8A38' : '#8AAA68';
-  const innerClr = state === 'flourishing' ? '#3A6A20' : '#6A8A48';
-  const tipClr   = state === 'flourishing' ? '#8ACA50' : '#A0B870';
-  const petalN   = state === 'flourishing' ? 8 : 6;
-
+/* ── GRAPEVINES ── */
+function Grapevine({ x, y }) {
+  const vineColor  = '#4A6020';
+  const grapeColor = '#602080';
+  const grapeLight = '#8040A0';
   return (
     <>
-      <SoilRows />
-      {rows.flatMap((y, ri) =>
-        cols.map((x, ci) => (
-          <g key={`${ri}-${ci}`}>
-            {/* rosette petals */}
-            {Array.from({ length: petalN }, (_, i) => {
-              const angle = (i / petalN) * Math.PI * 2;
-              return (
-                <ellipse key={i}
-                  cx={x + Math.cos(angle) * gr * 0.7}
-                  cy={y + Math.sin(angle) * gr * 0.55}
-                  rx={gr * 0.55} ry={gr * 0.4}
-                  fill={i % 2 === 0 ? outerClr : tipClr}
-                  transform={`rotate(${angle * 180 / Math.PI} ${x + Math.cos(angle) * gr * 0.7} ${y + Math.sin(angle) * gr * 0.55})`}
-                />
-              );
-            })}
-            {/* inner ring */}
-            {Array.from({ length: petalN }, (_, i) => {
-              const angle = (i / petalN) * Math.PI * 2 + Math.PI / petalN;
-              return (
-                <ellipse key={i}
-                  cx={x + Math.cos(angle) * gr * 0.38}
-                  cy={y + Math.sin(angle) * gr * 0.3}
-                  rx={gr * 0.35} ry={gr * 0.28}
-                  fill={innerClr}
-                  transform={`rotate(${angle * 180 / Math.PI} ${x + Math.cos(angle) * gr * 0.38} ${y + Math.sin(angle) * gr * 0.3})`}
-                />
-              );
-            })}
-            <circle cx={x} cy={y} r={gr * 0.22} fill={innerClr} />
-          </g>
-        ))
-      )}
+      {/* post */}
+      <rect x={x-1} y={y-20} width={2} height={20} fill="#7A5020" />
+      {/* horizontal wire */}
+      <rect x={x-8} y={y-16} width={16} height={1} fill="#5A3810" />
+      {/* vines */}
+      <rect x={x-6} y={y-16} width={2} height={10} fill={vineColor} />
+      <rect x={x+4}  y={y-16} width={2} height={8}  fill={vineColor} />
+      <rect x={x-8} y={y-14} width={4} height={2}  fill={vineColor} />
+      <rect x={x+4}  y={y-12} width={4} height={2}  fill={vineColor} />
+      {/* grape clusters */}
+      <rect x={x-8} y={y-12} width={4} height={2} fill={grapeColor} />
+      <rect x={x-7} y={y-10} width={2} height={2} fill={grapeLight} />
+      <rect x={x+4}  y={y-10} width={4} height={2} fill={grapeColor} />
+      <rect x={x+5}  y={y-8}  width={2} height={2} fill={grapeLight} />
+      <rect x={x-2}  y={y-6}  width={4} height={2} fill={grapeColor} />
+      <rect x={x-1}  y={y-4}  width={2} height={2} fill={grapeLight} />
     </>
   );
 }
 
-/* ─────────────── WILDFLOWERS ─────────────── */
-const FLOWER_COLORS = ['#E06080', '#C850A0', '#9060D0', '#F0A030', '#E05060'];
-const PETAL_COLORS  = ['#F090B0', '#E880C0', '#B090E0', '#F8C060', '#F07090'];
-
-function WildflowerPlot({ state }) {
-  if (state === 'dead') return <DeadPlot />;
-
-  const rows  = state === 'flourishing' ? [36, 72, 106] : [52, 92];
-  const cols  = state === 'flourishing' ? [18, 52, 86, 120, 150] : [30, 80, 130];
-  const stemH = state === 'flourishing' ? 28 : 18;
-  const stemClr = state === 'flourishing' ? '#4A8A30' : '#8A9A58';
-  const pr = state === 'flourishing' ? 7 : 5;
-  const petals = state === 'flourishing' ? 7 : 5;
-
+/* ── WHEAT ── */
+function Wheat({ x, y }) {
+  const stemColor  = '#A07828';
+  const grainColor = '#C4A030';
+  const grainLight = '#E8C040';
   return (
     <>
-      <SoilRows />
-      {rows.flatMap((y, ri) =>
-        cols.map((x, ci) => {
-          const colorIdx = (ri * cols.length + ci) % FLOWER_COLORS.length;
-          const headY = y - stemH;
-          return (
-            <g key={`${ri}-${ci}`}>
-              <line x1={x} y1={y} x2={x} y2={headY} stroke={stemClr} strokeWidth="2" strokeLinecap="round" />
-              <ellipse cx={x - 8} cy={y - stemH * 0.5} rx="7" ry="3" fill={stemClr} transform={`rotate(-30 ${x - 8} ${y - stemH * 0.5})`} />
-              {/* petals */}
-              {Array.from({ length: petals }, (_, i) => {
-                const angle = (i / petals) * Math.PI * 2;
-                return (
-                  <ellipse key={i}
-                    cx={x + Math.cos(angle) * (pr + 2.5)}
-                    cy={headY + Math.sin(angle) * (pr + 2.5)}
-                    rx="4.5" ry="7"
-                    fill={PETAL_COLORS[colorIdx]}
-                    transform={`rotate(${angle * 180 / Math.PI + 90} ${x + Math.cos(angle) * (pr + 2.5)} ${headY + Math.sin(angle) * (pr + 2.5)})`}
-                    opacity={state === 'flourishing' ? 1 : 0.65}
-                  />
-                );
-              })}
-              <circle cx={x} cy={headY} r={pr * 0.55} fill={FLOWER_COLORS[colorIdx]} />
-              <circle cx={x} cy={headY} r={pr * 0.28} fill="#F8E040" />
-            </g>
-          );
-        })
-      )}
+      {/* stem */}
+      <rect x={x-1} y={y-20} width={2} height={20} fill={stemColor} />
+      {/* nodes */}
+      <rect x={x-1} y={y-7}  width={2} height={2} fill={grainColor} />
+      <rect x={x-1} y={y-14} width={2} height={2} fill={grainColor} />
+      {/* leaf blades */}
+      <rect x={x-6} y={y-10} width={6} height={2} fill={stemColor} />
+      <rect x={x+1}  y={y-6}  width={5} height={2} fill={stemColor} />
+      {/* grain head */}
+      <rect x={x-2} y={y-26} width={4} height={8} fill={grainColor} />
+      <rect x={x-1} y={y-28} width={2} height={4} fill={grainLight} />
+      {/* awns */}
+      <rect x={x-4} y={y-26} width={2} height={1} fill={grainLight} />
+      <rect x={x+2}  y={y-24} width={2} height={1} fill={grainLight} />
+      <rect x={x-4} y={y-22} width={2} height={1} fill={grainColor} />
+      <rect x={x+2}  y={y-20} width={2} height={1} fill={grainColor} />
     </>
   );
 }
 
-/* ─────────────── DEAD STATE (shared) ─────────────── */
-function DeadPlot() {
+/* ── TOMATOES ── */
+function Tomato({ x, y }) {
+  const stemColor  = '#4A7820';
+  const leafColor  = '#3A6018';
+  const fruitColor = '#C04028';
+  const fruitLight = '#E06040';
   return (
     <>
-      {/* cracked soil lines */}
-      <path d="M20 30 Q40 35 55 28 Q70 22 85 30" stroke="rgba(180,120,60,0.35)" strokeWidth="1.5" fill="none" />
-      <path d="M90 55 Q110 48 130 57 Q145 63 155 50" stroke="rgba(180,120,60,0.3)" strokeWidth="1.5" fill="none" />
-      <path d="M15 80 Q35 87 50 75 Q65 63 80 78" stroke="rgba(180,120,60,0.3)" strokeWidth="1.5" fill="none" />
-      {/* dry stubs */}
-      {[28, 68, 110, 148].map((x, i) => {
-        const y = [95, 85, 95, 88][i];
-        return (
-          <g key={x}>
-            <line x1={x} y1={y} x2={x - 2} y2={y - 22} stroke="#7A5A30" strokeWidth="2" strokeLinecap="round" />
-            <line x1={x} y1={y - 10} x2={x - 8} y2={y - 18} stroke="#8A6A38" strokeWidth="1.5" strokeLinecap="round" />
-            <line x1={x - 2} y1={y - 16} x2={x + 7} y2={y - 22} stroke="#7A5A30" strokeWidth="1.5" strokeLinecap="round" />
-          </g>
-        );
-      })}
-      {[44, 90, 130].map((x, i) => {
-        const y = [75, 100, 70][i];
-        return (
-          <g key={x}>
-            <line x1={x} y1={y} x2={x + 1} y2={y - 14} stroke="#6A4A28" strokeWidth="1.5" strokeLinecap="round" />
-            <line x1={x + 1} y1={y - 7} x2={x - 6} y2={y - 13} stroke="#7A5830" strokeWidth="1" strokeLinecap="round" />
-          </g>
-        );
-      })}
+      {/* stem */}
+      <rect x={x-1} y={y-20} width={2} height={20} fill={stemColor} />
+      {/* leaves */}
+      <rect x={x-6} y={y-14} width={6} height={2} fill={leafColor} />
+      <rect x={x-6} y={y-16} width={4} height={2} fill={leafColor} />
+      <rect x={x+1}  y={y-10} width={5} height={2} fill={leafColor} />
+      <rect x={x+1}  y={y-12} width={3} height={2} fill={leafColor} />
+      {/* calyx */}
+      <rect x={x-3} y={y-22} width={6} height={2} fill={leafColor} />
+      {/* main fruit */}
+      <rect x={x-4} y={y-28} width={8} height={6} fill={fruitColor} />
+      <rect x={x-5} y={y-26} width={10} height={2} fill={fruitColor} />
+      <rect x={x-3} y={y-30} width={6} height={2} fill={fruitColor} />
+      {/* highlight */}
+      <rect x={x-3} y={y-29} width={2} height={2} fill={fruitLight} />
     </>
   );
 }
 
-const PLOT_FNS = {
-  tomatoes:    TomatoPlot,
-  sunflowers:  SunflowerPlot,
-  lavender:    LavenderPlot,
-  succulents:  SucculentPlot,
-  wildflowers: WildflowerPlot,
+/* ── WILDFLOWERS ── */
+function Wildflower({ x, y }) {
+  const stemColor   = '#4A8030';
+  const petalColors = ['#E06080', '#C850A0', '#9060D0', '#F0A030', '#E05060'];
+  // use x as seed for color variety
+  const ci = Math.abs(Math.round(x * 3.7)) % petalColors.length;
+  const petal = petalColors[ci];
+  const center = '#F8E040';
+  return (
+    <>
+      {/* stem */}
+      <rect x={x-1} y={y-16} width={2} height={16} fill={stemColor} />
+      {/* leaf */}
+      <rect x={x-5} y={y-10} width={5} height={2} fill={stemColor} />
+      {/* petals (4 directions) */}
+      <rect x={x-1} y={y-24} width={2} height={4} fill={petal} />
+      <rect x={x-1} y={y-20} width={2} height={4} fill={petal} />
+      <rect x={x-6} y={y-21} width={4} height={2} fill={petal} />
+      <rect x={x+2}  y={y-21} width={4} height={2} fill={petal} />
+      {/* diagonal hints */}
+      <rect x={x-4} y={y-23} width={2} height={2} fill={petal} opacity={0.8} />
+      <rect x={x+2}  y={y-23} width={2} height={2} fill={petal} opacity={0.8} />
+      {/* center */}
+      <rect x={x-1} y={y-22} width={2} height={2} fill={center} />
+    </>
+  );
+}
+
+/* ── DAISIES ── */
+function Daisy({ x, y }) {
+  const stemColor  = '#4A7020';
+  const petalColor = '#F8F8E0';
+  const center     = '#E0B020';
+  return (
+    <>
+      {/* stem */}
+      <rect x={x-1} y={y-14} width={2} height={14} fill={stemColor} />
+      {/* leaf */}
+      <rect x={x-4} y={y-9} width={4} height={2} fill={stemColor} />
+      {/* petals */}
+      <rect x={x-1} y={y-22} width={2} height={4} fill={petalColor} />
+      <rect x={x-1} y={y-18} width={2} height={4} fill={petalColor} />
+      <rect x={x-5} y={y-19} width={4} height={2} fill={petalColor} />
+      <rect x={x+1}  y={y-19} width={4} height={2} fill={petalColor} />
+      {/* diagonals */}
+      <rect x={x-4} y={y-22} width={2} height={2} fill={petalColor} />
+      <rect x={x+2}  y={y-22} width={2} height={2} fill={petalColor} />
+      <rect x={x-4} y={y-18} width={2} height={2} fill={petalColor} />
+      <rect x={x+2}  y={y-18} width={2} height={2} fill={petalColor} />
+      {/* center */}
+      <rect x={x-2} y={y-21} width={4} height={4} fill={center} />
+    </>
+  );
+}
+
+/* ── CHAMOMILE ── */
+function Chamomile({ x, y }) {
+  const stemColor  = '#608840';
+  const petalColor = '#F0EED8';
+  const center     = '#D8C040';
+  return (
+    <>
+      {/* stem */}
+      <rect x={x-1} y={y-14} width={2} height={14} fill={stemColor} />
+      {/* feathery leaves */}
+      <rect x={x-5} y={y-10} width={4} height={2} fill={stemColor} />
+      <rect x={x-6} y={y-8}  width={4} height={2} fill={stemColor} />
+      <rect x={x+1}  y={y-7}  width={4} height={2} fill={stemColor} />
+      {/* petals — slightly drooping */}
+      <rect x={x-1} y={y-22} width={2} height={6} fill={petalColor} />
+      <rect x={x-5} y={y-20} width={4} height={2} fill={petalColor} />
+      <rect x={x+1}  y={y-20} width={4} height={2} fill={petalColor} />
+      <rect x={x-4} y={y-22} width={2} height={4} fill={petalColor} />
+      <rect x={x+2}  y={y-22} width={2} height={4} fill={petalColor} />
+      {/* center dome */}
+      <rect x={x-2} y={y-20} width={4} height={4} fill={center} />
+      <rect x={x-1} y={y-22} width={2} height={2} fill={center} />
+    </>
+  );
+}
+
+/* ── ROSES ── */
+function Rose({ x, y }) {
+  const stemColor  = '#386020';
+  const leafColor  = '#3A5A18';
+  const petalOuter = '#A01840';
+  const petalInner = '#C02050';
+  const petalLight = '#E04070';
+  return (
+    <>
+      {/* stem */}
+      <rect x={x-1} y={y-18} width={2} height={18} fill={stemColor} />
+      {/* thorns */}
+      <rect x={x-3} y={y-12} width={2} height={2} fill={stemColor} />
+      <rect x={x+1}  y={y-8}  width={2} height={2} fill={stemColor} />
+      {/* leaves */}
+      <rect x={x-5} y={y-14} width={5} height={2} fill={leafColor} />
+      <rect x={x-6} y={y-16} width={4} height={2} fill={leafColor} />
+      <rect x={x+1}  y={y-10} width={4} height={2} fill={leafColor} />
+      {/* outer petals */}
+      <rect x={x-4} y={y-26} width={8} height={6} fill={petalOuter} />
+      <rect x={x-5} y={y-24} width={10} height={4} fill={petalOuter} />
+      {/* inner petals */}
+      <rect x={x-3} y={y-28} width={6} height={6} fill={petalInner} />
+      <rect x={x-2} y={y-30} width={4} height={4} fill={petalInner} />
+      {/* highlight */}
+      <rect x={x-1} y={y-30} width={2} height={2} fill={petalLight} />
+      <rect x={x-3} y={y-27} width={2} height={2} fill={petalLight} />
+    </>
+  );
+}
+
+const CROP_FNS = {
+  sunflowers:  Sunflower,
+  lavender:    Lavender,
+  grapevines:  Grapevine,
+  wheat:       Wheat,
+  tomatoes:    Tomato,
+  wildflowers: Wildflower,
+  daisies:     Daisy,
+  chamomile:   Chamomile,
+  roses:       Rose,
 };

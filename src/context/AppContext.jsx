@@ -1,22 +1,33 @@
 import { createContext, useContext, useReducer, useEffect } from 'react';
 
+export const CROPS_PER_PLOT = 10;
+
 const CROPS = [
-  { id: 'tomatoes',    label: 'Tomatoes',    emoji: '🍅', color: '#C4704A' },
   { id: 'sunflowers',  label: 'Sunflowers',  emoji: '🌻', color: '#D4A017' },
-  { id: 'lavender',    label: 'Lavender',    emoji: '💜', color: '#9B7EB8' },
-  { id: 'succulents',  label: 'Succulents',  emoji: '🪴', color: '#5A7A3A' },
+  { id: 'lavender',    label: 'Lavender',    emoji: '💜', color: '#7060A8' },
+  { id: 'grapevines',  label: 'Grapevines',  emoji: '🍇', color: '#602080' },
+  { id: 'wheat',       label: 'Wheat',       emoji: '🌾', color: '#C4A030' },
+  { id: 'tomatoes',    label: 'Tomatoes',    emoji: '🍅', color: '#C4704A' },
   { id: 'wildflowers', label: 'Wildflowers', emoji: '🌸', color: '#E07090' },
+  { id: 'daisies',     label: 'Daisies',     emoji: '🌼', color: '#F0E060' },
+  { id: 'chamomile',   label: 'Chamomile',   emoji: '⚪', color: '#E8D898' },
+  { id: 'roses',       label: 'Roses',       emoji: '🌹', color: '#C02050' },
 ];
 
 const DEFAULT_CATEGORIES = [
-  { id: 'groceries',     name: 'Groceries',        crop: 'tomatoes',    budget: 500  },
-  { id: 'dining',        name: 'Dining Out',        crop: 'sunflowers',  budget: 200  },
-  { id: 'subscriptions', name: 'Subscriptions',     crop: 'lavender',    budget: 100  },
-  { id: 'gas',           name: 'Gas & Utilities',   crop: 'succulents',  budget: 300  },
-  { id: 'fun',           name: 'Fun Money',         crop: 'wildflowers', budget: 150  },
+  { id: 'homestead',  name: 'The Homestead',    crop: 'sunflowers',  budget: 2000 },
+  { id: 'utility',    name: 'The Utility Patch', crop: 'lavender',    budget: 300  },
+  { id: 'vine',       name: 'The Vine',          crop: 'grapevines',  budget: 150  },
+  { id: 'fuel',       name: 'The Fuel Row',      crop: 'wheat',       budget: 200  },
+  { id: 'pantry',     name: 'The Pantry Plot',   crop: 'tomatoes',    budget: 600  },
+  { id: 'fun',        name: 'The Fun Garden',    crop: 'wildflowers', budget: 200  },
+  { id: 'littleones', name: 'The Little Ones',   crop: 'daisies',     budget: 200  },
+  { id: 'wild',       name: 'The Wild Patch',    crop: 'chamomile',   budget: 100  },
+  { id: 'cellar',     name: 'The Cellar',        crop: 'roses',       budget: 100  },
 ];
 
 const INITIAL_STATE = {
+  version: 2,
   settings: {
     person1: 'Person 1',
     person2: 'Person 2',
@@ -39,8 +50,18 @@ function getWeekKey(date = new Date()) {
 
 function reducer(state, action) {
   switch (action.type) {
-    case 'HYDRATE':
-      return { ...INITIAL_STATE, ...action.payload };
+    case 'HYDRATE': {
+      const loaded = action.payload;
+      // Migrate from v1 (old 5-category setup) to v2 (9-category pixel art)
+      if (!loaded.version || loaded.version < 2) {
+        return {
+          ...INITIAL_STATE,
+          settings: { ...INITIAL_STATE.settings, ...(loaded.settings || {}) },
+          // reset categories and transactions since old IDs are incompatible
+        };
+      }
+      return { ...INITIAL_STATE, ...loaded };
+    }
 
     case 'UPDATE_SETTINGS':
       return { ...state, settings: { ...state.settings, ...action.payload } };
