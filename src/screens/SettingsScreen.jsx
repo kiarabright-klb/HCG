@@ -20,16 +20,25 @@ export default function SettingsScreen() {
       flex: 1,
       display: 'flex',
       flexDirection: 'column',
-      background: 'linear-gradient(160deg, #EAD9BB 0%, #F5EDD6 40%)',
+      background: '#F5EDD6',
       overflow: 'hidden',
     }}>
       {/* Header */}
-      <div style={{ padding: '16px 20px 12px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{
+        background: 'linear-gradient(180deg, #EDD9A8 0%, #E5CC90 100%)',
+        borderBottom: '3px solid #C8A050',
+        padding: '12px 16px 10px',
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        boxShadow: '0 2px 8px rgba(80,40,0,0.10)',
+      }}>
         <h1 style={{
           fontFamily: 'var(--font-serif)',
-          fontSize: 22,
+          fontSize: 20,
           fontWeight: 700,
-          color: 'var(--brown-dark)',
+          color: '#5A3008',
           lineHeight: 1,
         }}>Garden Setup</h1>
         {saved && (

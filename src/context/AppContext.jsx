@@ -3,31 +3,31 @@ import { createContext, useContext, useReducer, useEffect } from 'react';
 export const CROPS_PER_PLOT = 10;
 
 const CROPS = [
-  { id: 'sunflowers',  label: 'Sunflowers',  emoji: '🌻', color: '#D4A017' },
-  { id: 'lavender',    label: 'Lavender',    emoji: '💜', color: '#7060A8' },
-  { id: 'grapevines',  label: 'Grapevines',  emoji: '🍇', color: '#602080' },
+  { id: 'sunflowers',  label: 'Sunflowers',  emoji: '🌻', color: '#F0B020' },
+  { id: 'cabbages',    label: 'Cabbages',    emoji: '🥬', color: '#5A9A3A' },
+  { id: 'grapevines',  label: 'Grapevines',  emoji: '🍇', color: '#7040A0' },
   { id: 'wheat',       label: 'Wheat',       emoji: '🌾', color: '#C4A030' },
-  { id: 'tomatoes',    label: 'Tomatoes',    emoji: '🍅', color: '#C4704A' },
+  { id: 'tomatoes',    label: 'Tomatoes',    emoji: '🍅', color: '#D03020' },
+  { id: 'watermelon',  label: 'Watermelon',  emoji: '🍉', color: '#2A8020' },
+  { id: 'carrots',     label: 'Carrots',     emoji: '🥕', color: '#E06020' },
   { id: 'wildflowers', label: 'Wildflowers', emoji: '🌸', color: '#E07090' },
-  { id: 'daisies',     label: 'Daisies',     emoji: '🌼', color: '#F0E060' },
-  { id: 'chamomile',   label: 'Chamomile',   emoji: '⚪', color: '#E8D898' },
-  { id: 'roses',       label: 'Roses',       emoji: '🌹', color: '#C02050' },
+  { id: 'daisies',     label: 'Daisy',       emoji: '🌼', color: '#F5F0C8' },
 ];
 
 const DEFAULT_CATEGORIES = [
   { id: 'homestead',  name: 'The Homestead',    crop: 'sunflowers',  budget: 2000 },
-  { id: 'utility',    name: 'The Utility Patch', crop: 'lavender',    budget: 300  },
+  { id: 'utility',    name: 'The Utility Patch', crop: 'cabbages',    budget: 300  },
   { id: 'vine',       name: 'The Vine',          crop: 'grapevines',  budget: 150  },
   { id: 'fuel',       name: 'The Fuel Row',      crop: 'wheat',       budget: 200  },
   { id: 'pantry',     name: 'The Pantry Plot',   crop: 'tomatoes',    budget: 600  },
-  { id: 'fun',        name: 'The Fun Garden',    crop: 'wildflowers', budget: 200  },
-  { id: 'littleones', name: 'The Little Ones',   crop: 'daisies',     budget: 200  },
-  { id: 'wild',       name: 'The Wild Patch',    crop: 'chamomile',   budget: 100  },
-  { id: 'cellar',     name: 'The Cellar',        crop: 'roses',       budget: 100  },
+  { id: 'fun',        name: 'The Fun Garden',    crop: 'watermelon',  budget: 200  },
+  { id: 'littleones', name: 'The Little Ones',   crop: 'carrots',     budget: 200  },
+  { id: 'wild',       name: 'The Wild Patch',    crop: 'wildflowers', budget: 100  },
+  { id: 'cellar',     name: 'The Cellar',        crop: 'daisies',     budget: 100  },
 ];
 
 const INITIAL_STATE = {
-  version: 2,
+  version: 3,
   settings: {
     person1: 'Person 1',
     person2: 'Person 2',
@@ -52,12 +52,11 @@ function reducer(state, action) {
   switch (action.type) {
     case 'HYDRATE': {
       const loaded = action.payload;
-      // Migrate from v1 (old 5-category setup) to v2 (9-category pixel art)
-      if (!loaded.version || loaded.version < 2) {
+      // Migrate from v1/v2 to v3 (new crop types: cabbages, watermelon, carrots)
+      if (!loaded.version || loaded.version < 3) {
         return {
           ...INITIAL_STATE,
           settings: { ...INITIAL_STATE.settings, ...(loaded.settings || {}) },
-          // reset categories and transactions since old IDs are incompatible
         };
       }
       return { ...INITIAL_STATE, ...loaded };

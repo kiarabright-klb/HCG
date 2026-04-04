@@ -14,9 +14,9 @@ export default function PlotDetailScreen({ categoryId, onBack }) {
   if (!category) return null;
 
   const stateConfig = {
-    flourishing: { bg: 'linear-gradient(160deg, #D6E8A8 0%, #F5EDD6 50%)', accent: 'var(--green-mid)' },
-    wilting:     { bg: 'linear-gradient(160deg, #F4E8A8 0%, #F5EDD6 50%)', accent: '#C4A000' },
-    dead:        { bg: 'linear-gradient(160deg, #F4D0A8 0%, #F5EDD6 50%)', accent: 'var(--terracotta)' },
+    flourishing: { bg: '#F5EDD6', accent: 'var(--green-mid)', headerBg: 'linear-gradient(180deg, #D6EDA8 0%, #C8E898 100%)' },
+    wilting:     { bg: '#F5EDD6', accent: '#C4A000',          headerBg: 'linear-gradient(180deg, #F0E0A0 0%, #E8D080 100%)' },
+    dead:        { bg: '#F5EDD6', accent: 'var(--terracotta)', headerBg: 'linear-gradient(180deg, #F0C8A8 0%, #E8B890 100%)' },
   };
   const cfg = stateConfig[plotState];
 
@@ -32,9 +32,12 @@ export default function PlotDetailScreen({ categoryId, onBack }) {
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        padding: '16px 16px 12px',
+        padding: '12px 14px 10px',
         gap: 12,
         flexShrink: 0,
+        background: cfg.headerBg,
+        borderBottom: '3px solid #C8A050',
+        boxShadow: '0 2px 8px rgba(80,40,0,0.10)',
       }}>
         <button
           onClick={onBack}

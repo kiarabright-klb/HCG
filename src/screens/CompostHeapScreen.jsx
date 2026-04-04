@@ -40,21 +40,33 @@ export default function CompostHeapScreen() {
       flex: 1,
       display: 'flex',
       flexDirection: 'column',
-      background: 'linear-gradient(160deg, #E8D5A3 0%, #F5EDD6 50%)',
+      background: '#F5EDD6',
       overflow: 'hidden',
     }}>
       {/* Header */}
-      <div style={{ padding: '16px 20px 12px', flexShrink: 0 }}>
-        <h1 style={{
-          fontFamily: 'var(--font-serif)',
-          fontSize: 22,
-          fontWeight: 700,
-          color: 'var(--brown-dark)',
-          lineHeight: 1,
-        }}>The Compost Heap</h1>
-        <p style={{ fontSize: 12, color: 'var(--text-light)', marginTop: 3 }}>
-          Weekly leaderboard — {weekLabel}
-        </p>
+      <div style={{
+        background: 'linear-gradient(180deg, #EDD9A8 0%, #E5CC90 100%)',
+        borderBottom: '3px solid #C8A050',
+        padding: '12px 16px 10px',
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        boxShadow: '0 2px 8px rgba(80,40,0,0.10)',
+      }}>
+        <div>
+          <h1 style={{
+            fontFamily: 'var(--font-serif)',
+            fontSize: 20,
+            fontWeight: 700,
+            color: '#5A3008',
+            lineHeight: 1,
+          }}>The Compost Heap</h1>
+          <p style={{ fontSize: 11, color: '#8B6030', marginTop: 3, fontFamily: 'var(--font-sans)' }}>
+            Weekly leaderboard — {weekLabel}
+          </p>
+        </div>
+        <div style={{ marginLeft: 'auto', fontSize: 28 }}>♻️</div>
       </div>
 
       <div className="scroll-area" style={{ flex: 1, padding: '0 16px 24px' }}>

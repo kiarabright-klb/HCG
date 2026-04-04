@@ -88,32 +88,32 @@ input[type="number"]::-webkit-inner-spin-button {
   scrollbar-width: none;
 }
 
-/* ── Pixel art animations ── */
-@keyframes pixelBob {
+/* ── Plant animations ── */
+@keyframes plantBob {
   0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-3px); }
+  50%       { transform: translateY(-4px); }
 }
-@keyframes pixelSway {
+@keyframes plantSway {
   0%, 100% { transform: rotate(0deg); }
-  25%      { transform: rotate(-4deg); }
-  75%      { transform: rotate(4deg); }
+  30%      { transform: rotate(-5deg); }
+  70%      { transform: rotate(5deg); }
 }
-@keyframes pixelRustle {
+@keyframes plantRustle {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33%      { transform: translateY(-2px) rotate(-2deg); }
-  66%      { transform: translateY(-1px) rotate(2deg); }
+  25%      { transform: translateY(-3px) rotate(-3deg); }
+  75%      { transform: translateY(-1px) rotate(3deg); }
 }
 
-.pixelBob {
-  animation: pixelBob 2s ease-in-out var(--delay, 0s) infinite;
+.plantBob {
+  animation: plantBob 2.2s ease-in-out var(--delay, 0s) infinite;
 }
-.pixelSway {
+.plantSway {
   transform-box: fill-box;
   transform-origin: 50% 100%;
-  animation: pixelSway 2.5s ease-in-out var(--delay, 0s) infinite;
+  animation: plantSway 2.8s ease-in-out var(--delay, 0s) infinite;
 }
-.pixelRustle {
+.plantRustle {
   transform-box: fill-box;
   transform-origin: 50% 100%;
-  animation: pixelRustle 1.8s ease-in-out var(--delay, 0s) infinite;
+  animation: plantRustle 2s ease-in-out var(--delay, 0s) infinite;
 }

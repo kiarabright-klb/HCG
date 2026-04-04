@@ -1,7 +1,8 @@
 import { useApp, useCategorySpend } from '../context/AppContext';
 import PlotSoilScene from '../components/CropIllustration';
 
-const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTH_NAMES = ['January','February','March','April','May','June',
+                     'July','August','September','October','November','December'];
 
 export default function GardenScreen({ onPlotTap }) {
   const { state } = useApp();
@@ -13,91 +14,94 @@ export default function GardenScreen({ onPlotTap }) {
   const totalSpent  = state.transactions
     .filter(t => t.date.startsWith(month))
     .reduce((s, t) => s + t.amount, 0);
-  const overallPct = totalBudget > 0 ? Math.min(totalSpent / totalBudget, 1) : 0;
+  const overallPct  = totalBudget > 0 ? Math.min(totalSpent / totalBudget, 1) : 0;
+  const remaining   = totalBudget - totalSpent;
 
   return (
-    <div style={{
-      flex: 1,
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      background: '#1A0E04',
-      fontFamily: "'Press Start 2P', monospace",
-    }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#5A9828' }}>
 
-      {/* ── Pixel Art Header ── */}
+      {/* ── Warm illustrated header ── */}
       <div style={{
-        background: '#1C3A10',
-        borderBottom: '4px solid #0C1E08',
-        padding: '10px 12px 8px',
+        background: 'linear-gradient(180deg, #F5EDD6 0%, #EDD9A8 100%)',
+        borderBottom: '3px solid #C8A050',
+        padding: '10px 14px 9px',
         flexShrink: 0,
+        boxShadow: '0 2px 8px rgba(80,40,0,0.12)',
       }}>
-        {/* Title row */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 8,
-        }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
           <div>
             <div style={{
-              fontSize: 9,
-              color: '#A0D050',
-              textShadow: '1px 1px 0 #0C1E08',
-              letterSpacing: 0,
-              lineHeight: 1.4,
+              fontFamily: 'var(--font-serif)',
+              fontSize: 17,
+              fontWeight: 700,
+              color: '#5A3008',
+              lineHeight: 1.1,
             }}>
-              HANCOCK
+              The Hancock Family Garden
             </div>
-            <div style={{
-              fontSize: 7,
-              color: '#608830',
-              letterSpacing: 0,
-              lineHeight: 1.4,
-            }}>
-              FAMILY GARDEN
+            <div style={{ fontSize: 11, color: '#8B6030', marginTop: 2, fontFamily: 'var(--font-sans)' }}>
+              {monthLabel} · {state.settings.person1} &amp; {state.settings.person2}
             </div>
           </div>
-          <div style={{
-            fontSize: 6,
-            color: '#80A840',
-            textAlign: 'right',
-            lineHeight: 1.6,
-          }}>
-            <div>{monthLabel.toUpperCase()}</div>
-            <div style={{ color: '#50782A' }}>
-              {state.settings.person1} &amp; {state.settings.person2}
-            </div>
-          </div>
+          {/* Decorative sunflower icon */}
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            {[0,45,90,135,180,225,270,315].map(a => {
+              const r = (a * Math.PI) / 180;
+              const px = 18 + Math.cos(r) * 12;
+              const py = 18 + Math.sin(r) * 12;
+              return <ellipse key={a} cx={px} cy={py} rx="3.5" ry="1.5"
+                fill="#F5B820" transform={`rotate(${a}, ${px}, ${py})`} />;
+            })}
+            <circle cx="18" cy="18" r="7" fill="#6B3808" />
+            <circle cx="18" cy="18" r="4" fill="#4A2404" />
+            <rect x="17" y="26" width="2" height="9" fill="#4A8820" rx="1" />
+          </svg>
         </div>
 
         {/* Overall budget bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ flex: 1, height: 6, background: '#0C1E08', position: 'relative', imageRendering: 'pixelated' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{
+            flex: 1,
+            height: 8,
+            background: 'rgba(90,48,8,0.15)',
+            borderRadius: 99,
+            overflow: 'hidden',
+          }}>
             <div style={{
-              position: 'absolute',
-              top: 0, left: 0,
               height: '100%',
               width: `${overallPct * 100}%`,
-              background: overallPct >= 1 ? '#C03020' : overallPct >= 0.75 ? '#C0880A' : '#50A020',
-              transition: 'width 0.4s steps(20)',
+              background: overallPct >= 1 ? '#C83020'
+                        : overallPct >= 0.75 ? '#C08010'
+                        : '#5A9820',
+              borderRadius: 99,
+              transition: 'width 0.5s ease',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)',
             }} />
           </div>
-          <span style={{ fontSize: 5, color: '#608830', whiteSpace: 'nowrap' }}>
-            ${Math.round(totalSpent)} / ${Math.round(totalBudget)}
+          <span style={{
+            fontSize: 10,
+            color: overallPct >= 1 ? '#C03020' : '#7A5020',
+            fontWeight: 700,
+            whiteSpace: 'nowrap',
+            fontFamily: 'var(--font-sans)',
+          }}>
+            {remaining >= 0
+              ? `$${Math.round(remaining)} left`
+              : `$${Math.round(-remaining)} over`}
           </span>
         </div>
       </div>
 
-      {/* ── 3×3 Grid ── */}
+      {/* ── 3×3 plot grid on grass ── */}
       <div
         className="scroll-area"
         style={{
           flex: 1,
-          padding: 8,
+          background: 'linear-gradient(180deg, #6EB030 0%, #4A8820 100%)',
+          padding: '10px 8px 16px',
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 6,
+          gap: 8,
           alignContent: 'start',
         }}
       >
@@ -111,10 +115,14 @@ export default function GardenScreen({ onPlotTap }) {
 
 function PlotBed({ category, onTap }) {
   const spent = useCategorySpend(category.id);
-  const pct = category.budget > 0 ? spent / category.budget : 0;
+  const pct   = category.budget > 0 ? spent / category.budget : 0;
 
-  const signColor = pct >= 1 ? '#C03020' : pct >= 0.75 ? '#A07010' : '#2A6010';
-  const signBg    = pct >= 1 ? '#FF6040' : pct >= 0.75 ? '#E0A020' : '#50A020';
+  const statusColor = pct >= 1    ? '#D03020'
+                    : pct >= 0.75 ? '#C07810'
+                    : '#3A7018';
+  const statusBg    = pct >= 1    ? '#F0C0B0'
+                    : pct >= 0.75 ? '#F0D898'
+                    : '#C8E898';
 
   return (
     <button
@@ -122,29 +130,31 @@ function PlotBed({ category, onTap }) {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        background: 'transparent',
+        background: 'none',
         border: 'none',
         padding: 0,
         cursor: 'pointer',
         textAlign: 'left',
       }}
     >
-      {/* Wooden pixel frame + soil bed */}
+      {/* Wooden raised bed frame */}
       <div style={{
-        width: '100%',
-        aspectRatio: '1 / 0.9',
-        background: '#5C3A18',      /* wood frame */
-        border: '3px solid #3A2008',
-        padding: 3,
-        position: 'relative',
-        imageRendering: 'pixelated',
+        borderRadius: 13,
+        background: '#C48030',
+        border: '3px solid #8B5018',
+        boxShadow: '0 3px 8px rgba(60,30,0,0.25), inset 0 1px 0 rgba(255,220,100,0.2)',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
       }}>
-        {/* inner soil */}
+        {/* Soil + crop area */}
         <div style={{
-          width: '100%',
-          height: '100%',
-          background: '#4A2810',
+          background: '#5A3010',
+          margin: 4,
+          borderRadius: 8,
           overflow: 'hidden',
+          aspectRatio: '1 / 0.88',
+          boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.3)',
         }}>
           <PlotSoilScene
             crop={category.crop}
@@ -153,46 +163,37 @@ function PlotBed({ category, onTap }) {
           />
         </div>
 
-        {/* State dot — pixel indicator top-right */}
+        {/* Plot label strip */}
         <div style={{
-          position: 'absolute',
-          top: 4,
-          right: 4,
-          width: 6,
-          height: 6,
-          background: signBg,
-          border: `1px solid ${signColor}`,
-          imageRendering: 'pixelated',
-        }} />
-      </div>
-
-      {/* Label below the bed */}
-      <div style={{
-        width: '100%',
-        background: '#2A1608',
-        borderTop: '2px solid #1A0C04',
-        padding: '3px 4px',
-        overflow: 'hidden',
-      }}>
-        <div style={{
-          fontFamily: "'Press Start 2P', monospace",
-          fontSize: 5,
-          color: '#A0784A',
-          lineHeight: 1.5,
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'clip',
+          padding: '3px 6px 5px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
         }}>
-          {category.name.toUpperCase()}
-        </div>
-        <div style={{
-          fontFamily: "'Press Start 2P', monospace",
-          fontSize: 4,
-          color: pct >= 1 ? '#FF6040' : pct >= 0.75 ? '#E0A020' : '#608030',
-          lineHeight: 1.5,
-          marginTop: 1,
-        }}>
-          ${Math.round(spent)} / ${category.budget}
+          <div style={{
+            fontFamily: 'var(--font-serif)',
+            fontSize: 8,
+            fontWeight: 700,
+            color: '#F5E8C0',
+            lineHeight: 1.3,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}>
+            {category.name}
+          </div>
+          <div style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 7,
+            fontWeight: 700,
+            color: statusColor,
+            background: statusBg,
+            borderRadius: 4,
+            padding: '1px 4px',
+            alignSelf: 'flex-start',
+          }}>
+            ${Math.round(spent)} / ${category.budget}
+          </div>
         </div>
       </div>
     </button>
