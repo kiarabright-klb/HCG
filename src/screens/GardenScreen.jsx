@@ -18,15 +18,15 @@ export default function GardenScreen({ onPlotTap }) {
   const remaining   = totalBudget - totalSpent;
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#5A9828' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#091608' }}>
 
-      {/* ── Warm illustrated header ── */}
+      {/* ── Dark garden header ── */}
       <div style={{
-        background: 'linear-gradient(180deg, #F5EDD6 0%, #EDD9A8 100%)',
-        borderBottom: '3px solid #C8A050',
+        background: '#1A3418',
+        borderBottom: '2px solid #2C4E24',
         padding: '10px 14px 9px',
         flexShrink: 0,
-        boxShadow: '0 2px 8px rgba(80,40,0,0.12)',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.5)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
           <div>
@@ -34,12 +34,12 @@ export default function GardenScreen({ onPlotTap }) {
               fontFamily: 'var(--font-serif)',
               fontSize: 17,
               fontWeight: 700,
-              color: '#5A3008',
+              color: '#F0E4C0',
               lineHeight: 1.1,
             }}>
               The Hancock Family Garden
             </div>
-            <div style={{ fontSize: 11, color: '#8B6030', marginTop: 2, fontFamily: 'var(--font-sans)' }}>
+            <div style={{ fontSize: 11, color: '#C8A860', marginTop: 2, fontFamily: 'var(--font-sans)' }}>
               {monthLabel} · {state.settings.person1} &amp; {state.settings.person2}
             </div>
           </div>
@@ -62,25 +62,25 @@ export default function GardenScreen({ onPlotTap }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{
             flex: 1,
-            height: 8,
-            background: 'rgba(90,48,8,0.15)',
+            height: 7,
+            background: 'rgba(0,0,0,0.4)',
             borderRadius: 99,
             overflow: 'hidden',
           }}>
             <div style={{
               height: '100%',
               width: `${overallPct * 100}%`,
-              background: overallPct >= 1 ? '#C83020'
+              background: overallPct >= 1 ? '#D04030'
                         : overallPct >= 0.75 ? '#C08010'
-                        : '#5A9820',
+                        : '#5A9A28',
               borderRadius: 99,
               transition: 'width 0.5s ease',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)',
+              boxShadow: '0 0 8px rgba(90,154,40,0.4)',
             }} />
           </div>
           <span style={{
             fontSize: 10,
-            color: overallPct >= 1 ? '#C03020' : '#7A5020',
+            color: overallPct >= 1 ? '#E06040' : '#C8A860',
             fontWeight: 700,
             whiteSpace: 'nowrap',
             fontFamily: 'var(--font-sans)',
@@ -97,7 +97,7 @@ export default function GardenScreen({ onPlotTap }) {
         className="scroll-area"
         style={{
           flex: 1,
-          background: 'linear-gradient(180deg, #6EB030 0%, #4A8820 100%)',
+          background: '#091608',
           padding: '10px 8px 16px',
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
@@ -117,12 +117,12 @@ function PlotBed({ category, onTap }) {
   const spent = useCategorySpend(category.id);
   const pct   = category.budget > 0 ? spent / category.budget : 0;
 
-  const statusColor = pct >= 1    ? '#D03020'
-                    : pct >= 0.75 ? '#C07810'
-                    : '#3A7018';
-  const statusBg    = pct >= 1    ? '#F0C0B0'
-                    : pct >= 0.75 ? '#F0D898'
-                    : '#C8E898';
+  const statusColor = pct >= 1    ? '#F07050'
+                    : pct >= 0.75 ? '#E0B030'
+                    : '#78BD38';
+  const statusBg    = pct >= 1    ? 'rgba(208,72,56,0.25)'
+                    : pct >= 0.75 ? 'rgba(192,128,16,0.25)'
+                    : 'rgba(90,154,40,0.2)';
 
   return (
     <button
@@ -140,21 +140,21 @@ function PlotBed({ category, onTap }) {
       {/* Wooden raised bed frame */}
       <div style={{
         borderRadius: 13,
-        background: '#C48030',
-        border: '3px solid #8B5018',
-        boxShadow: '0 3px 8px rgba(60,30,0,0.25), inset 0 1px 0 rgba(255,220,100,0.2)',
+        background: '#7A4E18',
+        border: '3px solid #4A2E0A',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(200,160,60,0.15)',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
       }}>
         {/* Soil + crop area */}
         <div style={{
-          background: '#5A3010',
+          background: '#3A1C0A',
           margin: 4,
           borderRadius: 8,
           overflow: 'hidden',
           aspectRatio: '1 / 0.88',
-          boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.3)',
+          boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.5)',
         }}>
           <PlotSoilScene
             crop={category.crop}
@@ -174,7 +174,7 @@ function PlotBed({ category, onTap }) {
             fontFamily: 'var(--font-serif)',
             fontSize: 8,
             fontWeight: 700,
-            color: '#F5E8C0',
+            color: '#F0D8A0',
             lineHeight: 1.3,
             whiteSpace: 'nowrap',
             overflow: 'hidden',

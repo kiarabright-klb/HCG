@@ -17,7 +17,7 @@ export default function LoadingScreen({ onDone }) {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(160deg, #C8DBA0 0%, #F5EDD6 50%, #EAD9BB 100%)',
+      background: '#091608',
       opacity: phase === 0 ? 0 : phase === 1 ? 1 : 0,
       transition: phase === 0 ? 'opacity 0.6s ease' : 'opacity 0.5s ease',
       gap: 24,
@@ -83,7 +83,7 @@ export default function LoadingScreen({ onDone }) {
           fontFamily: 'var(--font-serif)',
           fontSize: 26,
           fontWeight: 700,
-          color: 'var(--green-deep)',
+          color: '#F0E4C0',
           lineHeight: 1.25,
           letterSpacing: '-0.5px',
           marginBottom: 6,
@@ -93,7 +93,7 @@ export default function LoadingScreen({ onDone }) {
         <p style={{
           fontFamily: 'var(--font-sans)',
           fontSize: 13,
-          color: 'var(--text-light)',
+          color: '#6A9858',
           letterSpacing: 2,
           textTransform: 'uppercase',
         }}>
@@ -108,7 +108,7 @@ export default function LoadingScreen({ onDone }) {
             width: 6,
             height: 6,
             borderRadius: '50%',
-            background: 'var(--green-mid)',
+            background: '#5A9A28',
             animation: `gentleFloat 1.2s ease-in-out ${i * 0.2}s infinite`,
           }}/>
         ))}

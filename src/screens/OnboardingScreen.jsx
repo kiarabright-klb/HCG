@@ -25,7 +25,7 @@ export default function OnboardingScreen() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(160deg, #C8DBA0 0%, #F5EDD6 50%, #EAD9BB 100%)',
+      background: '#091608',
       padding: '32px 24px',
       gap: 0,
     }}>
@@ -34,14 +34,14 @@ export default function OnboardingScreen() {
         fontFamily: 'var(--font-serif)',
         fontSize: 26,
         fontWeight: 700,
-        color: 'var(--green-deep)',
+        color: '#F0E4C0',
         textAlign: 'center',
         lineHeight: 1.2,
         marginBottom: 8,
       }}>Welcome to<br/>The Hancock Family Garden</h1>
       <p style={{
         fontSize: 14,
-        color: 'var(--text-light)',
+        color: '#C8A860',
         textAlign: 'center',
         marginBottom: 32,
         lineHeight: 1.5,
@@ -94,7 +94,7 @@ export default function OnboardingScreen() {
         </button>
       </div>
 
-      <p style={{ marginTop: 20, fontSize: 11, color: 'var(--text-light)', textAlign: 'center', opacity: 0.7 }}>
+      <p style={{ marginTop: 20, fontSize: 11, color: '#6A9858', textAlign: 'center', opacity: 0.8 }}>
         Everything is saved locally on your device.<br/>You can change names anytime in Settings.
       </p>
     </div>
@@ -105,7 +105,7 @@ const labelStyle = {
   display: 'block',
   fontSize: 12,
   fontWeight: 700,
-  color: 'var(--text-light)',
+  color: '#6A9858',
   textTransform: 'uppercase',
   letterSpacing: 0.5,
   marginBottom: 6,
@@ -114,10 +114,10 @@ const labelStyle = {
 const inputStyle = {
   width: '100%',
   padding: '13px 14px',
-  background: 'rgba(255,255,255,0.8)',
-  border: '1.5px solid var(--cream-dark)',
+  background: '#1A3418',
+  border: '1.5px solid #2C4E24',
   borderRadius: 'var(--radius-sm)',
   fontSize: 16,
-  color: 'var(--text-dark)',
+  color: '#F0E4C0',
   outline: 'none',
 };

@@ -5,26 +5,27 @@
 }
 
 :root {
-  --cream: #F5EDD6;
-  --cream-dark: #EAD9BB;
-  --green-deep: #3D5C28;
-  --green-mid: #5A7A3A;
-  --green-light: #7FA050;
-  --green-pale: #C8DBA0;
-  --brown-dark: #5C3D1E;
+  /* ── Night garden palette ── */
+  --cream: #F0E4C0;               /* warm cream — primary text */
+  --cream-dark: #2C4E24;          /* dark green border */
+  --green-deep: #091608;          /* deepest background */
+  --green-mid: #5A9A28;           /* bright accent green */
+  --green-light: #78BD38;         /* highlight green */
+  --green-pale: #223E1C;          /* elevated surface */
+  --brown-dark: #C4904A;          /* warm gold-brown (visible on dark) */
   --brown-mid: #8B6340;
   --brown-light: #C4956A;
-  --terracotta: #C4704A;
-  --terracotta-light: #E8A070;
+  --terracotta: #D04838;
+  --terracotta-light: #E8906A;
   --amber: #D4A017;
   --amber-light: #F0C040;
-  --text-dark: #2C1F0E;
-  --text-mid: #5C3D1E;
-  --text-light: #8B7355;
-  --white: #FDFAF3;
-  --shadow-sm: 0 2px 8px rgba(60, 40, 10, 0.12);
-  --shadow-md: 0 4px 16px rgba(60, 40, 10, 0.16);
-  --shadow-lg: 0 8px 32px rgba(60, 40, 10, 0.20);
+  --text-dark: #F0E4C0;           /* primary text — warm cream */
+  --text-mid: #C8A860;            /* secondary text — warm gold */
+  --text-light: #6A9858;          /* tertiary text — muted green */
+  --white: #1A3418;               /* card surface */
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.45);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.55);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.65);
   --radius-sm: 8px;
   --radius-md: 16px;
   --radius-lg: 24px;
@@ -40,7 +41,7 @@ html, body {
 
 body {
   font-family: var(--font-sans);
-  background: var(--cream);
+  background: #091608;
   color: var(--text-dark);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;

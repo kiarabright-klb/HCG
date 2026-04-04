@@ -8,11 +8,11 @@ export default function BottomNav({ screen, onNavigate }) {
   return (
     <nav style={{
       display: 'flex',
-      background: 'var(--white)',
-      borderTop: '1.5px solid var(--cream-dark)',
+      background: '#142810',
+      borderTop: '1.5px solid #2C4E24',
       paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       flexShrink: 0,
-      boxShadow: '0 -2px 12px rgba(60,40,10,0.08)',
+      boxShadow: '0 -4px 20px rgba(0,0,0,0.5)',
     }}>
       {tabs.map(({ id, label, icon: Icon }) => {
         const active = screen === id;
@@ -27,7 +27,7 @@ export default function BottomNav({ screen, onNavigate }) {
               flexDirection: 'column',
               alignItems: 'center',
               gap: 3,
-              color: active ? 'var(--green-mid)' : 'var(--text-light)',
+              color: active ? '#78BD38' : '#4A7A3A',
               transition: 'color 0.15s',
             }}
           >
@@ -48,9 +48,9 @@ export default function BottomNav({ screen, onNavigate }) {
 function GardenIcon({ size, filled }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <rect x="2" y="11" width="20" height="10" rx="2" fill={filled ? 'var(--green-mid)' : 'none'} stroke={filled ? 'var(--green-mid)' : 'currentColor'} strokeWidth="1.8"/>
-      <path d="M7 11V8a5 5 0 0 1 10 0v3" stroke={filled ? 'var(--green-mid)' : 'currentColor'} strokeWidth="1.8" strokeLinecap="round"/>
-      <path d="M12 3v2M6.5 5.5l1 1M17.5 5.5l-1 1" stroke={filled ? 'var(--green-mid)' : 'currentColor'} strokeWidth="1.8" strokeLinecap="round"/>
+      <rect x="2" y="11" width="20" height="10" rx="2" fill={filled ? '#78BD38' : 'none'} stroke={filled ? '#78BD38' : 'currentColor'} strokeWidth="1.8"/>
+      <path d="M7 11V8a5 5 0 0 1 10 0v3" stroke={filled ? '#78BD38' : 'currentColor'} strokeWidth="1.8" strokeLinecap="round"/>
+      <path d="M12 3v2M6.5 5.5l1 1M17.5 5.5l-1 1" stroke={filled ? '#78BD38' : 'currentColor'} strokeWidth="1.8" strokeLinecap="round"/>
     </svg>
   );
 }
