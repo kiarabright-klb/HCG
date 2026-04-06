@@ -169,7 +169,8 @@ export function AppProvider({ children }) {
     await setDoc(doc(db, 'gardens', code), { ...initialData, _device: DEVICE_ID });
     localStorage.setItem('hcg-garden-code', code);
     setGardenCodeState(code);
-    dispatch({ type: 'HYDRATE', payload: initialData });
+    // NOTE: intentionally NOT dispatching HYDRATE here so the code screen
+    // can render. OnboardingScreen calls UPDATE_SETTINGS to finish onboarding.
     return code;
   }
 

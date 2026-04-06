@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 
 export default function OnboardingScreen() {
-  const { createGarden, joinGarden } = useApp();
+  const { createGarden, joinGarden, dispatch } = useApp();
   const [mode, setMode]       = useState(null); // null | 'create' | 'join'
   const [person1, setPerson1] = useState('');
   const [person2, setPerson2] = useState('');
@@ -76,7 +76,7 @@ export default function OnboardingScreen() {
         </p>
 
         <button
-          onClick={() => {/* onboarded is already true — app auto-navigates */}}
+          onClick={() => dispatch({ type: 'UPDATE_SETTINGS', payload: { person1, person2, onboarded: true } })}
           style={primaryBtn}
         >
           Start Gardening →
