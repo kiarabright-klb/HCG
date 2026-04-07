@@ -1,65 +1,25 @@
-import { useState, useCallback } from 'react';
-import { AppProvider, useApp } from './context/AppContext';
-import LoadingScreen from './screens/LoadingScreen';
-import OnboardingScreen from './screens/OnboardingScreen';
-import GardenScreen from './screens/GardenScreen';
-import PlotDetailScreen from './screens/PlotDetailScreen';
-import CompostHeapScreen from './screens/CompostHeapScreen';
-import SettingsScreen from './screens/SettingsScreen';
-import BottomNav from './components/BottomNav';
-
-function AppShell() {
-  const { state } = useApp();
-  const [loading, setLoading] = useState(true);
-  const [screen, setScreen] = useState('garden');
-  const [plotId, setPlotId] = useState(null);
-
-  const handleLoadingDone = useCallback(() => setLoading(false), []);
-
-  const navigateTo = useCallback(s => {
-    setScreen(s);
-    setPlotId(null);
-  }, []);
-
-  const openPlot = useCallback(id => {
-    setPlotId(id);
-    setScreen('plot');
-  }, []);
-
-  const backToGarden = useCallback(() => {
-    setPlotId(null);
-    setScreen('garden');
-  }, []);
-
-  if (loading) {
-    return <LoadingScreen onDone={handleLoadingDone} />;
-  }
-
-  if (!state.settings.onboarded) {
-    return <OnboardingScreen />;
-  }
-
-  const showNav = screen !== 'plot';
-
-  return (
-    <>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {screen === 'garden'  && <GardenScreen onPlotTap={openPlot} />}
-        {screen === 'plot'    && <PlotDetailScreen categoryId={plotId} onBack={backToGarden} />}
-        {screen === 'compost' && <CompostHeapScreen />}
-        {screen === 'settings'&& <SettingsScreen />}
-      </div>
-      {showNav && (
-        <BottomNav screen={screen} onNavigate={navigateTo} />
-      )}
-    </>
-  );
-}
+import { Routes, Route, Navigate } from 'react-router-dom'
+import Sidebar from './components/layout/Sidebar'
+import Dashboard from './pages/Dashboard'
+import Destinations from './pages/Destinations'
+import MapView from './pages/MapView'
+import Trips from './pages/Trips'
+import Budget from './pages/Budget'
 
 export default function App() {
   return (
-    <AppProvider>
-      <AppShell />
-    </AppProvider>
-  );
+    <div className="app-layout">
+      <Sidebar />
+      <main className="main-content">
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/destinations" element={<Destinations />} />
+          <Route path="/map" element={<MapView />} />
+          <Route path="/trips" element={<Trips />} />
+          <Route path="/budget" element={<Budget />} />
+        </Routes>
+      </main>
+    </div>
+  )
 }
